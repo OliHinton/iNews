@@ -8,22 +8,20 @@ import Foundation
 import UserNotifications
 import Observation
 
+@MainActor
 @Observable
 class NotificationManager: NotificationManagerProtocol {
     
     static let shared = NotificationManager()
-
-    var isAuthorized = false
-
+    
+    private(set) var isAuthorized = false
+    
     private init() {}
-
+    
     func requestPermission() async {
         do {
-            let granted = try await UNUserNotificationCenter.current()
+            isAuthorized = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .badge, .sound])
-            await MainActor.run {
-                isAuthorized = granted
-            }
         } catch {
             print("Notification permission error: \(error)")
         }

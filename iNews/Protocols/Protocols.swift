@@ -18,6 +18,7 @@ protocol NetworkMonitorProtocol {
     var isConnected: Bool { get }
 }
 
+@MainActor
 protocol NotificationManagerProtocol {
     var isAuthorized: Bool { get }
     func requestPermission() async
