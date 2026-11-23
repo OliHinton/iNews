@@ -2,7 +2,7 @@ iNews
 A SwiftUI news app for keeping up with the latest headlines. Browse by category, search for articles, save favourites, and pick up where you left off with recently viewed articles
 
 Features
-Latest news, loaded from NEWS API NAME
+Latest news, loaded from [NewsAPI](https://newsapi.org)
 Categories: filter the feed by topic
 Search across articles
 Favourites: save articles to read later, stored with SwiftData
@@ -25,7 +25,7 @@ The API key stays out of the repository. It lives in a git-ignored Config.swift 
 
 Setup
 The API key isn't included in this repository. To run the app:
-Get a free API key from NEWS API.
+Get a free API key from [NewsAPI](https://newsapi.org).
 Create iNews/Endpoints/Config.swift:
 swift
 enum Config {
