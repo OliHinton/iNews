@@ -1,0 +1,6 @@
+Config.swift
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+.DS_Store

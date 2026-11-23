@@ -1,0 +1,12 @@
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# Secrets: never upload these
+Secrets.swift
+*.xcconfig
