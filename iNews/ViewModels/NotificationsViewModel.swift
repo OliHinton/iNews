@@ -17,8 +17,8 @@ class NotificationsViewModel {
 
     private let notificationManager: NotificationManagerProtocol
 
-    init(notificationManager: NotificationManagerProtocol = NotificationManager.shared) {
-        self.notificationManager = notificationManager
+    init(notificationManager: NotificationManagerProtocol? = nil) {
+        self.notificationManager = notificationManager ??  NotificationManager.shared
     }
 
     func handleToggle(_ enabled: Bool) async {

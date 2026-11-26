@@ -10,23 +10,32 @@ import SwiftUI
 struct CategoryCard: View {
     let item: Article
     let onTap: (Article) -> Void
+    let category: Category
     
     var body: some View {
         Button {
             onTap(item)
         } label: {
             VStack(alignment: .leading, spacing: 8) {
-                AsyncImage(url: URL(string: item.urlToImage ?? "")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle().fill(Color.gray.opacity(0.15))
-                        .overlay(ProgressView())
+                AsyncImage(url: URL(string: item.urlToImage ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    case .failure(_):
+                        Image(systemName: category.placeholderIcon)
+                            .font(.largeTitle)
+                            .foregroundStyle(category.placeholderColor)
+                    case .empty:
+                        ProgressView()
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
                 .frame(width: 220, height: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                
+
                 Text(item.title)
                     .font(.headline)
                     .lineLimit(2)
@@ -62,6 +71,7 @@ struct CategoryCard: View {
             publishedAt: "2026-07-22T10:00:00Z",
             content: nil
         ),
-        onTap: { _ in }
+        onTap: { _ in },
+        category: .business
     )
 }

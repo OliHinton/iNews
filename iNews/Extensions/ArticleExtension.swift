@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 extension Article {
    static func mock(
@@ -30,3 +31,4 @@ extension Article {
        )
    }
 }
+
