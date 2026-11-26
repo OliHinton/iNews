@@ -23,7 +23,10 @@ struct BookmarkRow: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 } placeholder: {
-                   ProgressView()
+                    Rectangle().fill(.quaternary)
+                    Image(systemName: "newspaper")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(width: 175, height: 130)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
