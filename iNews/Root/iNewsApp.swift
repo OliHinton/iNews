@@ -21,6 +21,6 @@ struct iNewsApp: App {
                 .environment(notificationsViewModel)
                 .environment(bookmarksViewModel)
         }
-        .modelContainer(for: [Bookmark.self, ViewedArticle.self])
+        .modelContainer(for: [Bookmark.self, ViewedArticle.self, CachedArticle.self])
     }
 }

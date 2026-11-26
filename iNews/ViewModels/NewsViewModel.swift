@@ -116,7 +116,8 @@ class NewsViewModel {
     
     func cacheArticles(_ articles: [Article], category: Category, context: ModelContext) {
         let raw = category.rawValue
-        try? context.delete(model: CachedArticle.self, where: #Predicate { $0.category == raw })
+        let descriptor = FetchDescriptor<CachedArticle>(predicate: #Predicate { $0.category == raw})
+        (try? context.fetch(descriptor))?.forEach { context.delete($0)}
         articles.forEach { context.insert(CachedArticle(from: $0, category: category))}
     }
  
