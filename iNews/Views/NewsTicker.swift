@@ -50,6 +50,8 @@ struct NewsTicker: View {
                     .lineLimit(1)
                     .transition(.push(from: .trailing))
                     .id(viewModel.tickerIndex)
+                    .clipped()
+                    .animation(.easeOut, value: viewModel.tickerIndex)
             }
         }
         .padding(.horizontal)

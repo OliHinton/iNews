@@ -32,34 +32,34 @@ class NewsViewModel {
         networkMonitor.isConnected
     }
     
-      init(
-          service: NewsServiceProtocol? = nil,
-          networkMonitor: NetworkMonitorProtocol? = nil
-      ) {
-          self.service = service ?? NewsService.shared
-          self.networkMonitor = networkMonitor ?? NetworkMonitor.shared
-      }
+    init(
+        service: NewsServiceProtocol? = nil,
+        networkMonitor: NetworkMonitorProtocol? = nil
+    ) {
+        self.service = service ?? NewsService.shared
+        self.networkMonitor = networkMonitor ?? NetworkMonitor.shared
+    }
     
     func fetchArticles(for category: Category) async -> [Article] {
         (try? await service.fetchTopHeadlines(category: category)) ?? []
     }
     
     func recordView(article: Article, category: Category, context: ModelContext) {
-           let articleURL = article.url
-           let descriptor = FetchDescriptor<ViewedArticle>(
-               predicate: #Predicate { $0.url == articleURL })
+        let articleURL = article.url
+        let descriptor = FetchDescriptor<ViewedArticle>(
+            predicate: #Predicate { $0.url == articleURL })
         
-           if let existing = try? context.fetch(descriptor).first {
-               context.delete(existing)
-           }
-           context.insert(ViewedArticle(from: article, category: category))
-       }
-
+        if let existing = try? context.fetch(descriptor).first {
+            context.delete(existing)
+        }
+        context.insert(ViewedArticle(from: article, category: category))
+    }
+    
     func loadArticles(context: ModelContext) async {
-        guard !isLoading else { return }
+        let category = selectedCategory
         
         guard networkMonitor.isConnected else {
-            loadCachedArticles(context: context)
+            loadCachedArticles(for: category, context: context)
             if articles.isEmpty {
                 errorMessage = "No internet connection."
                 hasError = true
@@ -70,23 +70,27 @@ class NewsViewModel {
         isLoading = true
         hasError = false
         errorMessage = nil
+        defer { if category == selectedCategory { isLoading = false }}
         
         do {
             let fetched = try await service.fetchTopHeadlines(category: selectedCategory)
+            guard category == selectedCategory else { return }
             articles = fetched
-            cacheArticles(fetched, context: context)
-        } catch {
-            if (error as? URLError)?.code == .cancelled {
-            } else {
-                loadCachedArticles(context: context)
+            tickerIndex = 0
+            isShowingCachedData = false
+            cacheTimestamp = nil
+            cacheArticles(fetched, category: category, context: context)
+        } catch is CancellationError {
+        } catch let error as URLError where error.code == .cancelled {
+            } catch {
+                guard category == selectedCategory else { return }
+                loadCachedArticles(for: category, context: context)
                 if articles.isEmpty {
                     errorMessage = (error as? NewsError)?.errorDescription ?? error.localizedDescription
                     hasError = true
                 }
             }
         }
-        isLoading = false
-    }
     
     func refreshArticles(context: ModelContext) async {
         await service.clearCache()
@@ -97,59 +101,49 @@ class NewsViewModel {
         selectedCategory = category
         await loadArticles(context: context)
     }
-    
-    func loadCachedArticles(context: ModelContext) {
-        let category = selectedCategory.rawValue
+    func loadCachedArticles(for category: Category, context: ModelContext) {
+        let raw = category.rawValue
         let descriptor = FetchDescriptor<CachedArticle>(
-            predicate: #Predicate { $0.category == category },
+            predicate: #Predicate { $0.category == raw },
             sortBy: [SortDescriptor(\.cachedAt, order: .reverse)]
         )
         let cached = (try? context.fetch(descriptor)) ?? []
         articles = cached.map(\.asArticle)
+        tickerIndex = 0
         isShowingCachedData = !cached.isEmpty
         cacheTimestamp = cached.first?.cachedAt
     }
-
-    func cacheArticles(_ articles: [Article], context: ModelContext) {
-        let category = selectedCategory
-        let categoryRaw = category.rawValue
-        
-        let descriptor = FetchDescriptor<CachedArticle>(predicate: #Predicate { $0.category == categoryRaw })
-        if let existing = try? context.fetch(descriptor) {
-            existing.forEach { context.delete($0) }
-        }
-        
-        for article in articles {
-            context.insert(CachedArticle(from: article, category: category))
+    
+    func cacheArticles(_ articles: [Article], category: Category, context: ModelContext) {
+        let raw = category.rawValue
+        try? context.delete(model: CachedArticle.self, where: #Predicate { $0.category == raw })
+        articles.forEach { context.insert(CachedArticle(from: $0, category: category))}
+    }
+ 
+    
+    func startTicker(interval: TimeInterval = 4) {
+        tickerTask?.cancel()
+        tickerTask = Task { [ weak self ] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(interval))
+                guard let self, !Task.isCancelled, !self.articles.isEmpty else { continue }
+                    self.tickerIndex = (self.tickerIndex + 1) % self.articles.count
+            }
         }
     }
     
-    func startTicker(interval: TimeInterval = 4) {
-            tickerTask?.cancel()
-            tickerTask = Task {
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(interval))
-                    guard !Task.isCancelled, !articles.isEmpty else { continue }
-                    withAnimation(.easeInOut) {
-                        tickerIndex = (tickerIndex + 1) % articles.count
-                    }
-                }
-            }
-        }
-
-        func stopTicker() {
-            tickerTask?.cancel()
-            tickerTask = nil
-        }
+    func stopTicker() {
+        tickerTask?.cancel()
+        tickerTask = nil
+    }
     
     func loadRelatedArticles(for category: Category, excluding article: Article, limit: Int = 10) async {
         isLoadingRelated = true
+        relatedArticles = []
         defer { isLoadingRelated = false }
         
         let fetched = await fetchArticles(for: category)
-        relatedArticles = Array(
-            fetched.filter { $0.url != article.url }
-                .prefix(limit)
-        )
+        guard !Task.isCancelled else { return }
+        relatedArticles = Array(fetched.filter { $0.url != article.url }.prefix(limit))
     }
 }
