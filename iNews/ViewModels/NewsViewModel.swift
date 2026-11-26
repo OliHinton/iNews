@@ -21,6 +21,8 @@ class NewsViewModel {
     var tickerIndex = 0
     var isShowingCachedData = false
     var cacheTimestamp: Date?
+    var relatedArticles: [Article] = []
+    var isLoadingRelated = false
     
     private let service: NewsServiceProtocol
     private let networkMonitor: NetworkMonitorProtocol
@@ -139,4 +141,15 @@ class NewsViewModel {
             tickerTask?.cancel()
             tickerTask = nil
         }
+    
+    func loadRelatedArticles(for category: Category, excluding article: Article, limit: Int = 10) async {
+        isLoadingRelated = true
+        defer { isLoadingRelated = false }
+        
+        let fetched = await fetchArticles(for: category)
+        relatedArticles = Array(
+            fetched.filter { $0.url != article.url }
+                .prefix(limit)
+        )
+    }
 }

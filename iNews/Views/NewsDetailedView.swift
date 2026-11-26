@@ -14,8 +14,6 @@ struct NewsDetailedView: View {
     @State private var heroVisible = false
     @State private var metaVisible = false
     @State private var contentVisible = false
-    @State private var relatedArticles: [Article] = []
-    @State private var isLoadingRelated = false
     @Environment(NewsViewModel.self) private var viewModel
     @Environment(\.modelContext) private var context
     @Binding var path: NavigationPath
@@ -143,13 +141,13 @@ struct NewsDetailedView: View {
             .padding(.bottom, 30)
             .opacity(contentVisible ? 1 : 0)
 
-            if isLoadingRelated {
+            if viewModel.isLoadingRelated {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
-            } else if !relatedArticles.isEmpty {
+            } else if !viewModel.relatedArticles.isEmpty {
                 RelatedArticlesSection(
-                    articles: relatedArticles,
+                    articles: viewModel.relatedArticles,
                     category: category,
                     onSelected: { selected in
                         path.append(Route.newsDetail(selected, category))
@@ -169,13 +167,7 @@ struct NewsDetailedView: View {
             withAnimation(.easeOut(duration: 0.4).delay(0.35)) { contentVisible = true }
         }
         .task {
-            isLoadingRelated = true
-            let fetched = await viewModel.fetchArticles(for: category)
-            relatedArticles = fetched
-                .filter { $0.url != article.url }
-                .prefix(10)
-                .map { $0 }
-            isLoadingRelated = false
+            await viewModel.loadRelatedArticles(for: category, excluding: article)
         }
         .task {
             viewModel.recordView(article: article, category: category, context: context)
