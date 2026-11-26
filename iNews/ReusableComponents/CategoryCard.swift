@@ -10,8 +10,7 @@ import SwiftUI
 struct CategoryCard: View {
     let item: Article
     let onTap: (Article) -> Void
-    let category: Category
-    
+   
     var body: some View {
         Button {
             onTap(item)
@@ -24,11 +23,15 @@ struct CategoryCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure(_):
-                        Image(systemName: category.placeholderIcon)
-                            .font(.largeTitle)
-                            .foregroundStyle(category.placeholderColor)
+                        Text("Failed to load image")
+                            .foregroundStyle(.primary)
+                            .font(.headline)
+                            .fontWeight(.semibold)
                     case .empty:
-                        ProgressView()
+                        Rectangle().fill(.quaternary)
+                        Image(systemName: "newspaper")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
                     @unknown default:
                         EmptyView()
                     }
@@ -72,6 +75,5 @@ struct CategoryCard: View {
             content: nil
         ),
         onTap: { _ in },
-        category: .business
     )
 }

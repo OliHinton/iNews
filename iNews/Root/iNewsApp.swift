@@ -13,6 +13,7 @@ struct iNewsApp: App {
     @State private var newsViewModel = NewsViewModel()
     @State private var notificationsViewModel = NotificationsViewModel()
     @State private var bookmarksViewModel = BookmarksViewModel()
+ 
     var body: some Scene {
         WindowGroup {
             HomeView()

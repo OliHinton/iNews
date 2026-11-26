@@ -10,14 +10,13 @@ import SwiftUI
 struct CategoryScrollView: View {
     let items: [Article]
     let onTap: (Article) -> Void
-    let category: Category
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ScrollView(.horizontal) {
                 HStack(spacing: 12) {
                     ForEach(items) { item in
-                        CategoryCard(item: item, onTap: onTap, category: category)
+                        CategoryCard(item: item, onTap: onTap)
                     }
                 }
             }
@@ -40,7 +39,7 @@ struct CategoryScrollView: View {
                 content: nil
             )
         ],
-        onTap: { _ in }, category: .business
+        onTap: { _ in }
     )
 }
 

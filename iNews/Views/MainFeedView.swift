@@ -8,7 +8,6 @@ import SwiftUI
 import SwiftData
 
 struct MainFeedView: View {
-    let category: Category
     @Binding var path: NavigationPath
     
     @State private var heroVisible = false
@@ -152,7 +151,7 @@ struct MainFeedView: View {
                     } else {
                         CategoryScrollView(items: viewModel.articles, onTap: { article in
                             path.append(Route.newsDetail(article, viewModel.selectedCategory))
-                        }, category: category)
+                        })
                         .opacity(contentVisible ? 1 : 0)
                         .offset(y: contentVisible ? 0 : 20)
                         
@@ -199,6 +198,6 @@ struct MainFeedView: View {
 
 #Preview {
     @Previewable @State var path = NavigationPath()
-    MainFeedView(category: .business, path: $path)
+    MainFeedView(path: $path)
         .environment(NewsViewModel(service: MockNewsService(), networkMonitor: MockNetworkMonitor()))
 }

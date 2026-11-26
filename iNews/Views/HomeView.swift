@@ -11,12 +11,11 @@ struct HomeView: View {
     @State private var homePath = NavigationPath()
     @State private var savedPath = NavigationPath()
     @State private var searchPath = NavigationPath()
-    let category: Category
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house.fill") {
                 NavigationStack(path: $homePath) {
-                    MainFeedView(category: category, path: $homePath)
+                    MainFeedView(path: $homePath)
                         .navigationDestination(for: Route.self) { route in
                         RouteDestinationView(route: route, path: $homePath)}
                 }
@@ -49,5 +48,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(category: .business)
+    HomeView()
 }
