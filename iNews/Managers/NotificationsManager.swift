@@ -54,9 +54,7 @@ class NotificationManager: NotificationManagerProtocol {
 
     func checkAuthorizationStatus() async {
         let settings = await UNUserNotificationCenter.current().notificationSettings()
-        await MainActor.run {
             isAuthorized = settings.authorizationStatus == .authorized
-        }
     }
 }
 
